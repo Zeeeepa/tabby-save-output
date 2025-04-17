@@ -1,0 +1,90 @@
+.form-line
+    .header
+        .title
+            | Save Output Settings
+
+.form-line
+    .header
+        .title
+            | Enable Database Storage
+        .description
+            | Save terminal output to a database instead of files
+    toggle([(ngModel)]='config.store.saveOutput.useDatabase')
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase')
+    .header
+        .title
+            | Create New SQLite Database
+        .description
+            | Create a new SQLite database with the provided settings
+    toggle([(ngModel)]='config.store.saveOutput.createNewDb')
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase && config.store.saveOutput.createNewDb')
+    .header
+        .title
+            | Database Path
+        .description
+            | Path where the SQLite database will be created
+    input.form-control(
+        type='text',
+        [(ngModel)]='config.store.saveOutput.dbPath',
+        placeholder='./terminal_output.db'
+    )
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase && !config.store.saveOutput.createNewDb')
+    .header
+        .title
+            | Database Type
+        .description
+            | Type of database to connect to
+    select.form-control(
+        [(ngModel)]='config.store.saveOutput.dbType'
+    )
+        option(value='better-sqlite3') SQLite
+        option(value='mysql') MySQL
+        option(value='postgres') PostgreSQL
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase && !config.store.saveOutput.createNewDb')
+    .header
+        .title
+            | Database Host
+        .description
+            | Hostname of the database server
+    input.form-control(
+        type='text',
+        [(ngModel)]='config.store.saveOutput.dbHost',
+        placeholder='localhost'
+    )
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase && !config.store.saveOutput.createNewDb')
+    .header
+        .title
+            | Database User
+        .description
+            | Username for database connection
+    input.form-control(
+        type='text',
+        [(ngModel)]='config.store.saveOutput.dbUser'
+    )
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase && !config.store.saveOutput.createNewDb')
+    .header
+        .title
+            | Database Password
+        .description
+            | Password for database connection
+    input.form-control(
+        type='password',
+        [(ngModel)]='config.store.saveOutput.dbPassword'
+    )
+
+.form-line(*ngIf='config.store.saveOutput.useDatabase && !config.store.saveOutput.createNewDb')
+    .header
+        .title
+            | Database Name
+        .description
+            | Name of the database to connect to
+    input.form-control(
+        type='text',
+        [(ngModel)]='config.store.saveOutput.dbName'
+    )
