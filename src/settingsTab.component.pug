@@ -1,83 +1,72 @@
-h3 Save Output
-
-.form-line(*ngIf='config.store.saveOutput')
+.form-line
     .form-group
         .form-line
             .header
-                .title
-                    .text Save Output
-                .description
-                    .text Automatically save streamed output of all input commands and responses
+                .title Save Output Settings
+                .description Configure output saving options
 
         .form-line
             .header
-                .title
-                    .text Storage Type
+                .title Automatic Save
+                .description Configure automatic output saving
+            toggle(
+                [(ngModel)]='config.store.saveOutput.autoSave',
+                (ngModelChange)='config.save()'
+            )
+
+        .form-line(*ngIf='config.store.saveOutput.autoSave')
+            .header
+                .title Save Output Type
+                .description Choose where to save output
             select(
-                [(ngModel)]='config.store.saveOutput.storageType'
+                [(ngModel)]='config.store.saveOutput.database.type',
                 (ngModelChange)='config.save()'
             )
                 option(value='file') File System
-                option(value='database') Database
+                option(value='sqlite') SQLite Database
 
-        .form-line(*ngIf='config.store.saveOutput.storageType === "file"')
+        .form-line(*ngIf='config.store.saveOutput.autoSave && config.store.saveOutput.database.type === "sqlite"')
             .header
-                .title
-                    .text Directory
-                .description
-                    .text Location to save output files
-            .input-group
-                input.form-control(
-                    type='text'
-                    [(ngModel)]='config.store.saveOutput.autoSaveDirectory'
-                    (ngModelChange)='config.save()'
-                )
-                button.btn.btn-secondary((click)='pickDirectory()')
-                    i.fas.fa-folder-open
+                .title Database Settings
+                .description Configure SQLite database settings
 
-        .form-line(*ngIf='config.store.saveOutput.storageType === "database"')
-            .header
-                .title
-                    .text Database Information
             .form-group
-                select(
-                    [(ngModel)]='config.store.saveOutput.database.type'
-                    (ngModelChange)='config.save()'
-                )
-                    option(value='sqlite') SQLite
+                .row
+                    .col
+                        .input-group
+                            .input-group-addon Database Path
+                            input.form-control(
+                                type='text',
+                                [(ngModel)]='config.store.saveOutput.database.path',
+                                (ngModelChange)='config.save()',
+                                readonly
+                            )
+                            button.btn.btn-secondary((click)='pickDatabasePath()')
+                                i.fas.fa-folder-open
 
-                .input-group(*ngIf='config.store.saveOutput.database.type === "sqlite"')
-                    input.form-control(
-                        type='text'
-                        placeholder='Database path'
-                        [(ngModel)]='config.store.saveOutput.database.path'
-                        (ngModelChange)='config.save()'
-                    )
-                    input.form-control(
-                        type='text'
-                        placeholder='Database name'
-                        [(ngModel)]='config.store.saveOutput.database.name'
-                        (ngModelChange)='config.save()'
-                    )
-                    .checkbox
-                        input(
-                            type='checkbox'
-                            [(ngModel)]='config.store.saveOutput.database.createNew'
-                            (ngModelChange)='onCreateNewDatabaseChange()'
-                        )
-                        label Create New SQLite DB
+                .row
+                    .col
+                        .input-group
+                            .input-group-addon Database Name
+                            input.form-control(
+                                type='text',
+                                [(ngModel)]='config.store.saveOutput.database.name',
+                                (ngModelChange)='config.save()'
+                            )
 
-                    button.btn.btn-secondary((click)='testDatabaseConnection()')
-                        i.fas.fa-database
-                        span Test Connection
+                .row
+                    .col
+                        .form-line
+                            .header
+                                .title Create New Database
+                                .description Create a new SQLite database with required tables
+                            toggle(
+                                [(ngModel)]='config.store.saveOutput.database.createNew',
+                                (ngModelChange)='onCreateNewDatabaseChange()'
+                            )
 
-        .form-line
-            .header
-                .title
-                    .text Save SSH Output Only
-                .description
-                    .text Only save output from SSH sessions
-            toggle(
-                [(ngModel)]='config.store.saveOutput.sshOnly'
-                (ngModelChange)='config.save()'
-            )
+                .row
+                    .col
+                        button.btn.btn-primary((click)='testDatabaseConnection()')
+                            i.fas.fa-database.mr-2
+                            span Test Connection
