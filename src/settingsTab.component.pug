@@ -1,29 +1,83 @@
 h3 Save Output
 
-.form-line
-    .header
-        .title Automatically save output for new tabs
-        .description Stores complete session logs in a directory
-    select.form-control(
-        [(ngModel)]='config.store.saveOutput.autoSave',
-        (ngModelChange)='config.save()'
-    )
-        option(ngValue='on') On
-        option(ngValue='ssh') For SSH only
-        option(ngValue='off') Off
+.form-line(*ngIf='config.store.saveOutput')
+    .form-group
+        .form-line
+            .header
+                .title
+                    .text Save Output
+                .description
+                    .text Automatically save streamed output of all input commands and responses
 
+        .form-line
+            .header
+                .title
+                    .text Storage Type
+            select(
+                [(ngModel)]='config.store.saveOutput.storageType'
+                (ngModelChange)='config.save()'
+            )
+                option(value='file') File System
+                option(value='database') Database
 
-.form-line(*ngIf='config.store.saveOutput.autoSave !== "off"')
-    .header
-        .title Directory
-        .description Destination path for the logs
-    .input-group
-        input.form-control(
-            type='text',
-            placeholder='Home directory',
-            [(ngModel)]='config.store.saveOutput.autoSaveDirectory',
-            (ngModelChange)='config.save()'
-        )
-        .input-group-append
-            button.btn.btn-secondary((click)='pickDirectory()')
-                i.fas.fa-folder-open
+        .form-line(*ngIf='config.store.saveOutput.storageType === "file"')
+            .header
+                .title
+                    .text Directory
+                .description
+                    .text Location to save output files
+            .input-group
+                input.form-control(
+                    type='text'
+                    [(ngModel)]='config.store.saveOutput.autoSaveDirectory'
+                    (ngModelChange)='config.save()'
+                )
+                button.btn.btn-secondary((click)='pickDirectory()')
+                    i.fas.fa-folder-open
+
+        .form-line(*ngIf='config.store.saveOutput.storageType === "database"')
+            .header
+                .title
+                    .text Database Information
+            .form-group
+                select(
+                    [(ngModel)]='config.store.saveOutput.database.type'
+                    (ngModelChange)='config.save()'
+                )
+                    option(value='sqlite') SQLite
+
+                .input-group(*ngIf='config.store.saveOutput.database.type === "sqlite"')
+                    input.form-control(
+                        type='text'
+                        placeholder='Database path'
+                        [(ngModel)]='config.store.saveOutput.database.path'
+                        (ngModelChange)='config.save()'
+                    )
+                    input.form-control(
+                        type='text'
+                        placeholder='Database name'
+                        [(ngModel)]='config.store.saveOutput.database.name'
+                        (ngModelChange)='config.save()'
+                    )
+                    .checkbox
+                        input(
+                            type='checkbox'
+                            [(ngModel)]='config.store.saveOutput.database.createNew'
+                            (ngModelChange)='onCreateNewDatabaseChange()'
+                        )
+                        label Create New SQLite DB
+
+                    button.btn.btn-secondary((click)='testDatabaseConnection()')
+                        i.fas.fa-database
+                        span Test Connection
+
+        .form-line
+            .header
+                .title
+                    .text Save SSH Output Only
+                .description
+                    .text Only save output from SSH sessions
+            toggle(
+                [(ngModel)]='config.store.saveOutput.sshOnly'
+                (ngModelChange)='config.save()'
+            )
