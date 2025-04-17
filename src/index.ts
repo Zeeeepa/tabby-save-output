@@ -1,33 +1,41 @@
 import { NgModule } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import TabbyCoreModule, { ConfigProvider } from 'tabby-core'
-import { TerminalContextMenuItemProvider, TerminalDecorator } from 'tabby-terminal'
-import { SettingsTabProvider } from 'tabby-settings'
+import { SettingsTabModule } from 'tabby-settings'
 
-import { SaveOutputContextMenu } from './contextMenu'
-import { SaveOutputConfigProvider } from './config'
-import { SaveOutputSettingsTabProvider } from './settings'
 import { SaveOutputSettingsTabComponent } from './settingsTab.component'
 import { SaveOutputDecorator } from './decorator'
+import { DatabaseService } from './services/database.service'
+import { ConfigService } from 'tabby-core'
 
+/** @hidden */
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
-        TabbyCoreModule,
+        SettingsTabModule,
     ],
     providers: [
-        { provide: TerminalContextMenuItemProvider, useClass: SaveOutputContextMenu, multi: true },
-        { provide: ConfigProvider, useClass: SaveOutputConfigProvider, multi: true },
-        { provide: SettingsTabProvider, useClass: SaveOutputSettingsTabProvider, multi: true },
-        { provide: TerminalDecorator, useClass: SaveOutputDecorator, multi: true },
-    ],
-    entryComponents: [
-        SaveOutputSettingsTabComponent,
+        { provide: SaveOutputDecorator, useClass: SaveOutputDecorator },
+        DatabaseService,
     ],
     declarations: [
         SaveOutputSettingsTabComponent,
     ],
+    exports: [
+        SaveOutputSettingsTabComponent,
+    ],
 })
-export default class SaveOutputModule { }
+export default class SaveOutputModule {
+    constructor(
+        private config: ConfigService,
+    ) {
+        config.store.saveOutput = config.store.saveOutput || {
+            autoSave: false,
+            dbName: 'terminal_output',
+            dbUser: '',
+            dbPassword: '',
+            dbHost: 'localhost'
+        }
+    }
+}

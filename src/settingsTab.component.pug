@@ -1,29 +1,62 @@
 h3 Save Output
+p Automatically save streamed output of all input commands and responses
 
 .form-line
     .header
-        .title Automatically save output for new tabs
-        .description Stores complete session logs in a directory
-    select.form-control(
-        [(ngModel)]='config.store.saveOutput.autoSave',
-        (ngModelChange)='config.save()'
-    )
-        option(ngValue='on') On
-        option(ngValue='ssh') For SSH only
-        option(ngValue='off') Off
+        .title
+            h3 Save Output
+            p Automatically save streamed output of all input commands and responses
 
-
-.form-line(*ngIf='config.store.saveOutput.autoSave !== "off"')
-    .header
-        .title Directory
-        .description Destination path for the logs
-    .input-group
-        input.form-control(
-            type='text',
-            placeholder='Home directory',
-            [(ngModel)]='config.store.saveOutput.autoSaveDirectory',
-            (ngModelChange)='config.save()'
+    .form-group
+        toggle(
+            [(ngModel)]='config.store.saveOutput.autoSave',
+            (ngModelChange)='config.save()',
         )
-        .input-group-append
-            button.btn.btn-secondary((click)='pickDirectory()')
-                i.fas.fa-folder-open
+        .form-label Enable output streaming
+
+    .form-group(*ngIf='showDatabaseInfo()')
+        .form-line
+            .header
+                .title
+                    h4 Database Information
+                    p Configure database connection settings
+
+            .form-group
+                .input-group
+                    .input-group-prepend
+                        .input-group-text Database Name
+                    input.form-control(
+                        type='text',
+                        [(ngModel)]='config.store.saveOutput.dbName',
+                        (ngModelChange)='config.save()',
+                    )
+
+            .form-group
+                .input-group
+                    .input-group-prepend
+                        .input-group-text Host
+                    input.form-control(
+                        type='text',
+                        [(ngModel)]='config.store.saveOutput.dbHost',
+                        (ngModelChange)='config.save()',
+                    )
+
+            .form-group
+                .input-group
+                    .input-group-prepend
+                        .input-group-text Username
+                    input.form-control(
+                        type='text',
+                        [(ngModel)]='config.store.saveOutput.dbUser',
+                        (ngModelChange)='config.save()',
+                    )
+
+            .form-group
+                .input-group
+                    .input-group-prepend
+                        .input-group-text Password
+                    input.form-control(
+                        type='password',
+                        [(ngModel)]='config.store.saveOutput.dbPassword',
+                        (ngModelChange)='config.save()',
+                    )
