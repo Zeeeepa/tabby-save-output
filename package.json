@@ -18,11 +18,11 @@
   "author": "Eugene Pankov",
   "license": "MIT",
   "devDependencies": {
-    "@angular/animations": "^7.2.16",
-    "@angular/common": "^7.2.16",
-    "@angular/core": "^7.2.16",
-    "@angular/forms": "^7.2.16",
-    "@angular/platform-browser": "^7.2.16",
+    "@angular/animations": "^9.1.9",
+    "@angular/common": "^9.1.9",
+    "@angular/core": "^9.1.9",
+    "@angular/forms": "^9.1.9",
+    "@angular/platform-browser": "^9.1.9",
     "@ng-bootstrap/ng-bootstrap": "^4.2.2",
     "@types/webpack-env": "^1.16.0",
     "apply-loader": "^2.0.0",
@@ -48,8 +48,8 @@
     "webpack-cli": "^4.5.0"
   },
   "peerDependencies": {
-    "@angular/core": "^7.0.0",
-    "@angular/common": "^7.0.0"
+    "@angular/core": "^9.0.0",
+    "@angular/common": "^9.0.0"
   },
   "repository": "eugeny/tabby-save-output"
 }
