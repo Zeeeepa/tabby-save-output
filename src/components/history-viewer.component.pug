@@ -1,0 +1,8 @@
+.terminal-history
+    .history-entry(*ngFor='let entry of history', [class]='getRowClass(entry)')
+        .entry-time {{ getDisplayTime(entry.timestamp) }}
+        .entry-type {{ entry.type }}
+        .entry-content {{ entry.content }}
+        .entry-status(*ngIf='entry.type === "output"')
+            .error-badge(*ngIf='entry.isError') Error
+            .issue-badge(*ngIf='entry.isIssue') Issue
