@@ -1,17 +1,15 @@
-import * as fs from 'fs'
-import * as os from 'os'
-import * as path from 'path'
-import sanitizeFilename from 'sanitize-filename'
 import { Injectable } from '@angular/core'
 import { ConfigService } from 'tabby-core'
 import { TerminalDecorator, BaseTerminalTabComponent, BaseSession } from 'tabby-terminal'
 import { SSHTabComponent } from 'tabby-ssh'
 import { cleanupOutput } from './util'
+import { DatabaseService } from './database.service'
 
 @Injectable()
 export class SaveOutputDecorator extends TerminalDecorator {
     constructor (
         private config: ConfigService,
+        private database: DatabaseService,
     ) {
         super()
     }
@@ -34,38 +32,49 @@ export class SaveOutputDecorator extends TerminalDecorator {
     }
 
     private attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
-        let outputPath = this.generatePath(tab)
-        const stream = fs.createWriteStream(outputPath)
-        let dataLength = 0
+        const sessionId = this.generateSessionId(tab)
+        let currentInput = ''
+        let isInputMode = true
 
-        // wait for the title to settle
-        setTimeout(() => {
-            let newPath = this.generatePath(tab)
-            fs.rename(outputPath, newPath, err => {
-                if (!err) {
-                    outputPath = newPath
-                }
-            })
-        }, 5000)
+        session.input$.subscribe(data => {
+            if (isInputMode) {
+                currentInput += data
+            }
+        })
 
-        session.output$.subscribe(data => {
+        session.output$.subscribe(async data => {
             data = cleanupOutput(data)
-            dataLength += data.length
-            stream.write(data, 'utf8')
+            
+            // If we receive output, we were in input mode and now switching to output mode
+            if (isInputMode && data.length > 0) {
+                isInputMode = false
+                // Save the completed input command
+                if (currentInput.trim()) {
+                    await this.database.saveTerminalOutput(sessionId, currentInput.trim(), '')
+                }
+                currentInput = ''
+            }
+
+            // Save the output
+            if (data.length > 0) {
+                await this.database.saveTerminalOutput(sessionId, null, data)
+            }
+
+            // If we see a prompt character, switch back to input mode
+            if (data.includes('$') || data.includes('#') || data.includes('>')) {
+                isInputMode = true
+            }
         })
 
         session.destroyed$.subscribe(() => {
-            stream.close()
-            if (!dataLength) {
-                fs.unlink(outputPath, () => null)
+            // Save any remaining input if session is destroyed
+            if (currentInput.trim()) {
+                this.database.saveTerminalOutput(sessionId, currentInput.trim(), '')
             }
         })
     }
 
-    private generatePath (tab: BaseTerminalTabComponent): string {
-        let outputPath = this.config.store.saveOutput.autoSaveDirectory || os.homedir()
-        let outputName = new Date().toISOString() + ' - ' + (tab.customTitle || tab.title || 'Untitled') + '.txt'
-        outputName = sanitizeFilename(outputName)
-        return path.join(outputPath, outputName)
+    private generateSessionId (tab: BaseTerminalTabComponent): string {
+        return `${new Date().toISOString()}-${tab.customTitle || tab.title || 'Untitled'}`
     }
 }

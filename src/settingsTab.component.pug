@@ -2,8 +2,8 @@ h3 Save Output
 
 .form-line
     .header
-        .title Automatically save output for new tabs
-        .description Stores complete session logs in a directory
+        .title Automatically save streamed output of all input commands and responses
+        .description Stores complete session logs in a database
     select.form-control(
         [(ngModel)]='config.store.saveOutput.autoSave',
         (ngModelChange)='config.save()'
@@ -15,15 +15,50 @@ h3 Save Output
 
 .form-line(*ngIf='config.store.saveOutput.autoSave !== "off"')
     .header
-        .title Directory
-        .description Destination path for the logs
+        .title Database
+        .description Database configuration for storing logs
     .input-group
         input.form-control(
             type='text',
-            placeholder='Home directory',
-            [(ngModel)]='config.store.saveOutput.autoSaveDirectory',
+            placeholder='Database name',
+            [(ngModel)]='config.store.saveOutput.databaseName',
             (ngModelChange)='config.save()'
         )
-        .input-group-append
-            button.btn.btn-secondary((click)='pickDirectory()')
-                i.fas.fa-folder-open
+    button.btn.btn-secondary.mt-2((click)='toggleDatabaseInfo()')
+        i.fas.fa-info-circle
+        span.ml-2 Database Information
+
+.form-line(*ngIf='config.store.saveOutput.autoSave !== "off" && showDatabaseInfo')
+    .database-info
+        .form-group
+            label Database Host
+            input.form-control(
+                type='text',
+                placeholder='localhost',
+                [(ngModel)]='config.store.saveOutput.databaseHost',
+                (ngModelChange)='config.save()'
+            )
+        .form-group
+            label Database Port
+            input.form-control(
+                type='number',
+                placeholder='5432',
+                [(ngModel)]='config.store.saveOutput.databasePort',
+                (ngModelChange)='config.save()'
+            )
+        .form-group
+            label Database Username
+            input.form-control(
+                type='text',
+                placeholder='username',
+                [(ngModel)]='config.store.saveOutput.databaseUsername',
+                (ngModelChange)='config.save()'
+            )
+        .form-group
+            label Database Password
+            input.form-control(
+                type='password',
+                placeholder='password',
+                [(ngModel)]='config.store.saveOutput.databasePassword',
+                (ngModelChange)='config.save()'
+            )

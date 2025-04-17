@@ -8,11 +8,30 @@ import { ElectronHostWindow, ElectronService } from 'tabby-electron'
     template: require('./settingsTab.component.pug'),
 })
 export class SaveOutputSettingsTabComponent {
+    showDatabaseInfo = false
+
     constructor (
         public config: ConfigService,
         private electron: ElectronService,
         private hostWindow: ElectronHostWindow,
-    ) { }
+    ) {
+        // Initialize database config if not exists
+        if (!this.config.store.saveOutput) {
+            this.config.store.saveOutput = {}
+        }
+        if (!this.config.store.saveOutput.databaseName) {
+            this.config.store.saveOutput.databaseName = ''
+            this.config.store.saveOutput.databaseHost = 'localhost'
+            this.config.store.saveOutput.databasePort = 5432
+            this.config.store.saveOutput.databaseUsername = ''
+            this.config.store.saveOutput.databasePassword = ''
+            this.config.save()
+        }
+    }
+
+    toggleDatabaseInfo(): void {
+        this.showDatabaseInfo = !this.showDatabaseInfo
+    }
 
     async pickDirectory (): Promise<void> {
         const paths = (await this.electron.dialog.showOpenDialog(
@@ -26,5 +45,4 @@ export class SaveOutputSettingsTabComponent {
             this.config.save()
         }
     }
-
 }
