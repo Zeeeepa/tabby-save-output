@@ -1,71 +1,76 @@
-import * as fs from 'fs'
-import * as os from 'os'
-import * as path from 'path'
-import sanitizeFilename from 'sanitize-filename'
 import { Injectable } from '@angular/core'
-import { ConfigService } from 'tabby-core'
-import { TerminalDecorator, BaseTerminalTabComponent, BaseSession } from 'tabby-terminal'
+import { TabContextMenuItemProvider, ConfigService } from 'tabby-core'
+import { BaseTerminalTabComponent } from 'tabby-terminal'
 import { SSHTabComponent } from 'tabby-ssh'
-import { cleanupOutput } from './util'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as os from 'os'
+import * as sqlite3 from 'sqlite3'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
-export class SaveOutputDecorator extends TerminalDecorator {
-    constructor (
+export class SaveOutputContextMenu extends TabContextMenuItemProvider {
+    private sessionId: string = uuidv4()
+    private db: sqlite3.Database | null = null
+
+    constructor(
         private config: ConfigService,
     ) {
         super()
+        this.initializeDB()
     }
 
-    attach (tab: BaseTerminalTabComponent): void {
-        if (this.config.store.saveOutput.autoSave === 'off' || this.config.store.saveOutput.autoSave === 'ssh' && !(tab instanceof SSHTabComponent)) {
+    private async initializeDB() {
+        if (this.config.store.saveOutput.dbConfig.host) {
+            this.db = new sqlite3.Database(this.config.store.saveOutput.dbConfig.host)
+        }
+    }
+
+    async saveOutput(tab: BaseTerminalTabComponent, data: string) {
+        if (!this.db) {
             return
         }
 
-        if (tab.sessionChanged$) { // v136+
-            tab.sessionChanged$.subscribe(session => {
-                if (session) {
-                    this.attachToSession(session, tab)
+        const command = tab.lastInput || ''
+        const response = data
+
+        return new Promise<void>((resolve, reject) => {
+            this.db?.run(
+                'INSERT INTO command_logs (command, response, session_id) VALUES (?, ?, ?)',
+                [command, response, this.sessionId],
+                (err) => {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve()
+                    }
                 }
-            })
-        }
-        if (tab.session) {
-            this.attachToSession(tab.session, tab)
-        }
+            )
+        })
     }
 
-    private attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
-        let outputPath = this.generatePath(tab)
-        const stream = fs.createWriteStream(outputPath)
-        let dataLength = 0
+    async provide(tab: BaseTerminalTabComponent) {
+        if (this.config.store.saveOutput.autoSave === 'off' || 
+            this.config.store.saveOutput.autoSave === 'ssh' && !(tab instanceof SSHTabComponent)) {
+            return []
+        }
 
-        // wait for the title to settle
-        setTimeout(() => {
-            let newPath = this.generatePath(tab)
-            fs.rename(outputPath, newPath, err => {
-                if (!err) {
-                    outputPath = newPath
-                }
-            })
-        }, 5000)
+        if (!this.db) {
+            await this.initializeDB()
+        }
 
-        session.output$.subscribe(data => {
-            data = cleanupOutput(data)
-            dataLength += data.length
-            stream.write(data, 'utf8')
+        const sub = tab.output$.subscribe(data => {
+            this.saveOutput(tab, data.toString())
         })
 
-        session.destroyed$.subscribe(() => {
-            stream.close()
-            if (!dataLength) {
-                fs.unlink(outputPath, () => null)
+        tab.destroyed$.subscribe(() => {
+            sub.unsubscribe()
+            if (this.db) {
+                this.db.close()
+                this.db = null
             }
         })
-    }
 
-    private generatePath (tab: BaseTerminalTabComponent): string {
-        let outputPath = this.config.store.saveOutput.autoSaveDirectory || os.homedir()
-        let outputName = new Date().toISOString() + ' - ' + (tab.customTitle || tab.title || 'Untitled') + '.txt'
-        outputName = sanitizeFilename(outputName)
-        return path.join(outputPath, outputName)
+        return []
     }
 }

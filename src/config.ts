@@ -5,7 +5,15 @@ export class SaveOutputConfigProvider extends ConfigProvider {
     defaults = {
         saveOutput: {
             autoSave: 'off',
-            autoSaveDirectory: null,
+            dbConfig: {
+                type: 'sqlite',
+                name: '',
+                host: '',
+                port: '',
+                username: '',
+                password: '',
+                createNew: false,
+            },
         },
     }
 

@@ -2,8 +2,8 @@ h3 Save Output
 
 .form-line
     .header
-        .title Automatically save output for new tabs
-        .description Stores complete session logs in a directory
+        .title Automatically save streamed output of all input commands and responses
+        .description Stores complete session logs in a database
     select.form-control(
         [(ngModel)]='config.store.saveOutput.autoSave',
         (ngModelChange)='config.save()'
@@ -12,18 +12,31 @@ h3 Save Output
         option(ngValue='ssh') For SSH only
         option(ngValue='off') Off
 
-
 .form-line(*ngIf='config.store.saveOutput.autoSave !== "off"')
     .header
-        .title Directory
-        .description Destination path for the logs
-    .input-group
+        .title Database
+        .description Configure database connection settings
+    .form-group
+        label Database Name
         input.form-control(
             type='text',
-            placeholder='Home directory',
-            [(ngModel)]='config.store.saveOutput.autoSaveDirectory',
+            placeholder='Enter database name',
+            [(ngModel)]='config.store.saveOutput.dbConfig.name',
             (ngModelChange)='config.save()'
         )
-        .input-group-append
-            button.btn.btn-secondary((click)='pickDirectory()')
-                i.fas.fa-folder-open
+    .form-group
+        label Create New SQLite DB?
+        .input-group
+            .input-group-prepend
+                .input-group-text
+                    input(
+                        type='checkbox',
+                        [(ngModel)]='config.store.saveOutput.dbConfig.createNew',
+                        (ngModelChange)='config.save()'
+                    )
+            button.btn.btn-secondary((click)='createSQLiteDB()', [disabled]='!config.store.saveOutput.dbConfig.createNew')
+                i.fas.fa-database
+                span  Create Database
+            button.btn.btn-secondary.ml-2((click)='testConnection()', [disabled]='!config.store.saveOutput.dbConfig.host')
+                i.fas.fa-plug
+                span  Test Connection
