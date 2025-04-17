@@ -2,28 +2,29 @@ h3 Save Output
 
 .form-line
     .header
-        .title Automatically save output for new tabs
-        .description Stores complete session logs in a directory
-    select.form-control(
-        [(ngModel)]='config.store.saveOutput.autoSave',
-        (ngModelChange)='config.save()'
-    )
-        option(ngValue='on') On
-        option(ngValue='ssh') For SSH only
-        option(ngValue='off') Off
+        .title Save Output
+        .description Automatically save streamed output of all input commands and responses
 
-
-.form-line(*ngIf='config.store.saveOutput.autoSave !== "off"')
-    .header
-        .title Directory
-        .description Destination path for the logs
-    .input-group
-        input.form-control(
-            type='text',
-            placeholder='Home directory',
-            [(ngModel)]='config.store.saveOutput.autoSaveDirectory',
-            (ngModelChange)='config.save()'
+    .form-group
+        toggle(
+            [(ngModel)]='config.enabled',
+            (ngModelChange)='save()',
         )
-        .input-group-append
-            button.btn.btn-secondary((click)='pickDirectory()')
-                i.fas.fa-folder-open
+        .description Enable output streaming
+
+    .form-group(*ngIf='config.enabled')
+        toggle(
+            [(ngModel)]='config.sshOnly',
+            (ngModelChange)='save()',
+        )
+        .description Only save SSH session output
+
+    .form-group(*ngIf='config.enabled')
+        .input-group
+            input.form-control(
+                type='text',
+                [(ngModel)]='config.databasePath',
+                (ngModelChange)='save()',
+                placeholder='SQLite database path'
+            )
+        .description SQLite database file location

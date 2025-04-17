@@ -1,30 +1,31 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Component } from '@angular/core'
 import { ConfigService } from 'tabby-core'
-import { ElectronHostWindow, ElectronService } from 'tabby-electron'
 
-/** @hidden */
+interface SaveOutputConfig {
+    enabled: boolean
+    sshOnly: boolean
+    databasePath: string
+}
+
 @Component({
     template: require('./settingsTab.component.pug'),
 })
 export class SaveOutputSettingsTabComponent {
-    constructor (
-        public config: ConfigService,
-        private electron: ElectronService,
-        private hostWindow: ElectronHostWindow,
-    ) { }
+    config: SaveOutputConfig
 
-    async pickDirectory (): Promise<void> {
-        const paths = (await this.electron.dialog.showOpenDialog(
-            this.hostWindow.getWindow(),
-            {
-                properties: ['openDirectory', 'showHiddenFiles'],
-            }
-        )).filePaths
-        if (paths[0]) {
-            this.config.store.saveOutput.autoSaveDirectory = paths[0]
-            this.config.save()
+    constructor(
+        private configService: ConfigService,
+    ) {
+        this.config = this.configService.store.saveOutput || {
+            enabled: false,
+            sshOnly: false,
+            databasePath: `${process.env.HOME}/.tabby/terminal_output.db`
         }
     }
 
+    save() {
+        this.configService.store.saveOutput = this.config
+        this.configService.save()
+    }
 }
