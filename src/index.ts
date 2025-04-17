@@ -1,33 +1,18 @@
 import { NgModule } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import TabbyCoreModule, { ConfigProvider } from 'tabby-core'
-import { TerminalContextMenuItemProvider, TerminalDecorator } from 'tabby-terminal'
-import { SettingsTabProvider } from 'tabby-settings'
-
-import { SaveOutputContextMenu } from './contextMenu'
-import { SaveOutputConfigProvider } from './config'
-import { SaveOutputSettingsTabProvider } from './settings'
-import { SaveOutputSettingsTabComponent } from './settingsTab.component'
-import { SaveOutputDecorator } from './decorator'
+import { TerminalDecorator } from 'tabby-terminal'
+import { StreamingService } from './services/streaming.service'
+import { TerminalStreamDecorator } from './services/terminal-decorator.service'
 
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
-        TabbyCoreModule,
     ],
     providers: [
-        { provide: TerminalContextMenuItemProvider, useClass: SaveOutputContextMenu, multi: true },
-        { provide: ConfigProvider, useClass: SaveOutputConfigProvider, multi: true },
-        { provide: SettingsTabProvider, useClass: SaveOutputSettingsTabProvider, multi: true },
-        { provide: TerminalDecorator, useClass: SaveOutputDecorator, multi: true },
-    ],
-    entryComponents: [
-        SaveOutputSettingsTabComponent,
-    ],
-    declarations: [
-        SaveOutputSettingsTabComponent,
+        StreamingService,
+        { provide: TerminalDecorator, useClass: TerminalStreamDecorator, multi: true }
     ],
 })
-export default class SaveOutputModule { }
+export default class TerminalStreamModule { }

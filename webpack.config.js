@@ -3,15 +3,16 @@ const path = require('path')
 module.exports = {
   target: 'node',
   entry: 'src/index.ts',
-  devtool: 'source-map',
-  context: __dirname,
   mode: 'development',
+  devtool: 'source-map',
+  optimization: {
+    minimize: false
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',
     pathinfo: true,
     libraryTarget: 'umd',
-    devtoolModuleFilenameTemplate: 'webpack-tabby-save-output:///[resource-path]',
   },
   resolve: {
     modules: ['.', 'src', 'node_modules'].map(x => path.join(__dirname, x)),
@@ -21,24 +22,22 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        loader: 'awesome-typescript-loader',
+        loader: 'ts-loader',
         options: {
-          configFileName: path.resolve(__dirname, 'tsconfig.json'),
+          configFile: path.resolve(__dirname, 'tsconfig.json'),
         }
       },
-      {
-        test: /\.scss/,
-        use: ['style-loader', 'css-loader', 'sass-loader'],
-      },
+      { test: /\.scss$/, use: ['to-string-loader', 'css-loader', 'sass-loader'] },
       { test: /\.pug$/, use: ['apply-loader', 'pug-loader'] },
     ]
   },
   externals: [
     'fs',
-    'ngx-toastr',
+    'path',
+    'tabby-core',
+    'tabby-terminal',
+    '@angular/core',
+    '@angular/forms',
     /^rxjs/,
-    /^@angular/,
-    /^@ng-bootstrap/,
-    /^tabby-/,
-  ]
+  ],
 }
