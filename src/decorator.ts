@@ -1,71 +1,42 @@
-import * as fs from 'fs'
-import * as os from 'os'
-import * as path from 'path'
-import sanitizeFilename from 'sanitize-filename'
 import { Injectable } from '@angular/core'
-import { ConfigService } from 'tabby-core'
-import { TerminalDecorator, BaseTerminalTabComponent, BaseSession } from 'tabby-terminal'
-import { SSHTabComponent } from 'tabby-ssh'
-import { cleanupOutput } from './util'
+import { TerminalDecorator, BaseTerminalTabComponent } from 'tabby-terminal'
+import { DatabaseService } from './services/database.service'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
 export class SaveOutputDecorator extends TerminalDecorator {
-    constructor (
-        private config: ConfigService,
+    private sessions: Map<BaseTerminalTabComponent, string> = new Map()
+
+    constructor(
+        private databaseService: DatabaseService,
     ) {
         super()
     }
 
-    attach (tab: BaseTerminalTabComponent): void {
-        if (this.config.store.saveOutput.autoSave === 'off' || this.config.store.saveOutput.autoSave === 'ssh' && !(tab instanceof SSHTabComponent)) {
-            return
+    attach(terminal: BaseTerminalTabComponent): void {
+        const sessionId = uuidv4()
+        this.sessions.set(terminal, sessionId)
+        
+        this.databaseService.createSession(sessionId, terminal.title)
+
+        const originalInput = terminal.input.bind(terminal)
+        terminal.input = (data: string) => {
+            this.databaseService.saveOutput(sessionId, 'input', data)
+            return originalInput(data)
         }
 
-        if (tab.sessionChanged$) { // v136+
-            tab.sessionChanged$.subscribe(session => {
-                if (session) {
-                    this.attachToSession(session, tab)
-                }
-            })
-        }
-        if (tab.session) {
-            this.attachToSession(tab.session, tab)
+        const originalWrite = terminal.write.bind(terminal)
+        terminal.write = (data: string) => {
+            this.databaseService.saveOutput(sessionId, 'response', data)
+            return originalWrite(data)
         }
     }
 
-    private attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
-        let outputPath = this.generatePath(tab)
-        const stream = fs.createWriteStream(outputPath)
-        let dataLength = 0
-
-        // wait for the title to settle
-        setTimeout(() => {
-            let newPath = this.generatePath(tab)
-            fs.rename(outputPath, newPath, err => {
-                if (!err) {
-                    outputPath = newPath
-                }
-            })
-        }, 5000)
-
-        session.output$.subscribe(data => {
-            data = cleanupOutput(data)
-            dataLength += data.length
-            stream.write(data, 'utf8')
-        })
-
-        session.destroyed$.subscribe(() => {
-            stream.close()
-            if (!dataLength) {
-                fs.unlink(outputPath, () => null)
-            }
-        })
-    }
-
-    private generatePath (tab: BaseTerminalTabComponent): string {
-        let outputPath = this.config.store.saveOutput.autoSaveDirectory || os.homedir()
-        let outputName = new Date().toISOString() + ' - ' + (tab.customTitle || tab.title || 'Untitled') + '.txt'
-        outputName = sanitizeFilename(outputName)
-        return path.join(outputPath, outputName)
+    detach(terminal: BaseTerminalTabComponent): void {
+        const sessionId = this.sessions.get(terminal)
+        if (sessionId) {
+            this.databaseService.closeSession(sessionId)
+            this.sessions.delete(terminal)
+        }
     }
 }

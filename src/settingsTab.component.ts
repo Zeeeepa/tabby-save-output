@@ -1,30 +1,55 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Component } from '@angular/core'
 import { ConfigService } from 'tabby-core'
-import { ElectronHostWindow, ElectronService } from 'tabby-electron'
+import { DatabaseConfig } from './services/database.service'
 
-/** @hidden */
+interface SaveOutputConfig {
+    autoStart: boolean
+    database: DatabaseConfig
+}
+
 @Component({
     template: require('./settingsTab.component.pug'),
+    styles: [require('./settingsTab.component.scss')],
 })
 export class SaveOutputSettingsTabComponent {
-    constructor (
-        public config: ConfigService,
-        private electron: ElectronService,
-        private hostWindow: ElectronHostWindow,
-    ) { }
+    config: SaveOutputConfig
 
-    async pickDirectory (): Promise<void> {
-        const paths = (await this.electron.dialog.showOpenDialog(
-            this.hostWindow.getWindow(),
-            {
-                properties: ['openDirectory', 'showHiddenFiles'],
+    constructor(
+        private configService: ConfigService,
+    ) {
+        this.config = this.configService.store.saveOutput || {
+            autoStart: false,
+            database: {
+                type: 'sqlite',
+                path: 'tabby-output.db',
+                createIfNotExists: true
             }
-        )).filePaths
-        if (paths[0]) {
-            this.config.store.saveOutput.autoSaveDirectory = paths[0]
-            this.config.save()
         }
     }
 
+    save() {
+        this.configService.store.saveOutput = this.config
+        this.configService.save()
+    }
+
+    toggleDatabaseType() {
+        if (this.config.database.type === 'sqlite') {
+            this.config.database = {
+                type: 'custom',
+                host: 'localhost',
+                port: 5432,
+                username: '',
+                password: '',
+                database: ''
+            }
+        } else {
+            this.config.database = {
+                type: 'sqlite',
+                path: 'tabby-output.db',
+                createIfNotExists: true
+            }
+        }
+        this.save()
+    }
 }

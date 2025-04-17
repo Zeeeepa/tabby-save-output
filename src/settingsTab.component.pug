@@ -2,28 +2,85 @@ h3 Save Output
 
 .form-line
     .header
-        .title Automatically save output for new tabs
-        .description Stores complete session logs in a directory
-    select.form-control(
-        [(ngModel)]='config.store.saveOutput.autoSave',
-        (ngModelChange)='config.save()'
-    )
-        option(ngValue='on') On
-        option(ngValue='ssh') For SSH only
-        option(ngValue='off') Off
+        .title Auto-save output
+        .description Automatically save terminal output to database
 
+    .form-group
+        .toggle
+            input(
+                type='checkbox',
+                [(ngModel)]='config.autoStart'
+                (ngModelChange)='save()'
+            )
 
-.form-line(*ngIf='config.store.saveOutput.autoSave !== "off"')
+.form-line
     .header
-        .title Directory
-        .description Destination path for the logs
-    .input-group
-        input.form-control(
-            type='text',
-            placeholder='Home directory',
-            [(ngModel)]='config.store.saveOutput.autoSaveDirectory',
-            (ngModelChange)='config.save()'
-        )
-        .input-group-append
-            button.btn.btn-secondary((click)='pickDirectory()')
-                i.fas.fa-folder-open
+        .title Database Configuration
+        .description Configure database connection settings
+
+    .form-group
+        .row
+            .col-12
+                .toggle
+                    input(
+                        type='checkbox',
+                        [checked]='config.database.type === "custom"'
+                        (change)='toggleDatabaseType()'
+                    )
+                    .description Use custom database (instead of SQLite)
+
+        .row(*ngIf='config.database.type === "sqlite"')
+            .col-12
+                .input-group
+                    input.form-control(
+                        type='text',
+                        placeholder='Database file path',
+                        [(ngModel)]='config.database.path'
+                        (ngModelChange)='save()'
+                    )
+
+        .row(*ngIf='config.database.type === "custom"')
+            .col-12
+                .input-group
+                    input.form-control(
+                        type='text',
+                        placeholder='Host',
+                        [(ngModel)]='config.database.host'
+                        (ngModelChange)='save()'
+                    )
+
+            .col-6
+                .input-group
+                    input.form-control(
+                        type='number',
+                        placeholder='Port',
+                        [(ngModel)]='config.database.port'
+                        (ngModelChange)='save()'
+                    )
+
+            .col-12
+                .input-group
+                    input.form-control(
+                        type='text',
+                        placeholder='Database name',
+                        [(ngModel)]='config.database.database'
+                        (ngModelChange)='save()'
+                    )
+
+            .col-12
+                .input-group
+                    input.form-control(
+                        type='text',
+                        placeholder='Username',
+                        [(ngModel)]='config.database.username'
+                        (ngModelChange)='save()'
+                    )
+
+            .col-12
+                .input-group
+                    input.form-control(
+                        type='password',
+                        placeholder='Password',
+                        [(ngModel)]='config.database.password'
+                        (ngModelChange)='save()'
+                    )
