@@ -6,6 +6,15 @@ export class SaveOutputConfigProvider extends ConfigProvider {
         saveOutput: {
             autoSave: 'off',
             autoSaveDirectory: null,
+            storageType: 'file', // 'file' or 'database'
+            database: {
+                type: 'sqlite',
+                path: null,
+                name: null,
+                username: null,
+                password: null,
+                createNew: false,
+            },
         },
     }
 
