@@ -1,0 +1,17 @@
+.terminal-history
+    .header
+        .tabs
+            button.tab((click)='switchTab("all")', [class.active]='activeTab === "all"') All Records
+            button.tab((click)='switchTab("errors")', [class.active]='activeTab === "errors"') Errors Only
+
+    .records-container
+        .record(*ngFor='let record of records', [class]='getErrorClass(record)')
+            .record-header
+                .timestamp {{ getFormattedTime(record.timestamp) }}
+                .error-type(*ngIf='record.isError') {{ record.errorType }}
+            .command
+                strong Input:
+                pre {{ record.input }}
+            .output
+                strong Output:
+                pre {{ record.output }}

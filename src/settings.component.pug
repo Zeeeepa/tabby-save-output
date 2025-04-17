@@ -1,0 +1,26 @@
+.settings-tab
+    h3 Terminal Output Settings
+
+    .form-line
+        .header
+            .title Auto-save terminal output
+            .description Automatically save all terminal input and output
+        toggle([(ngModel)]='config.autoSave', (ngModelChange)='save()')
+
+    .form-line
+        .header
+            .title Error detection
+            .description Analyze output for errors and mark them in history
+        toggle([(ngModel)]='config.errorDetection', (ngModelChange)='save()')
+
+    .form-line
+        .header
+            .title Maximum records
+            .description Number of records to keep in history
+        input(
+            type='number',
+            [(ngModel)]='config.maxRecords',
+            (ngModelChange)='save()',
+            min='100',
+            max='10000'
+        )

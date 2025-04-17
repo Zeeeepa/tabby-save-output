@@ -1,7 +1,7 @@
 {
   "name": "tabby-save-output",
-  "version": "3.1.0",
-  "description": "Lets you stream console output into a file",
+  "version": "1.1.0",
+  "description": "Save and analyze terminal output with error detection",
   "keywords": [
     "tabby-plugin"
   ],
@@ -15,40 +15,40 @@
   "files": [
     "dist"
   ],
-  "author": "Eugene Pankov",
+  "author": "Zeeeepa",
   "license": "MIT",
   "devDependencies": {
-    "@angular/animations": "^7.2.8",
-    "@angular/common": "^7.2.8",
-    "@angular/core": "^7.2.8",
-    "@angular/forms": "^7.2.8",
-    "@angular/platform-browser": "^7.2.8",
-    "@ng-bootstrap/ng-bootstrap": "^2.2.0",
-    "@types/webpack-env": "^1.16.0",
+    "@angular/common": "^13.3.2",
+    "@angular/core": "^13.3.2",
+    "@angular/forms": "^13.3.2",
+    "@angular/platform-browser": "^13.3.2",
+    "@ng-bootstrap/ng-bootstrap": "^12.0.2",
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^14.14.31",
     "apply-loader": "^2.0.0",
-    "awesome-typescript-loader": "^5.2.1",
     "css-loader": "^5.1.1",
-    "electron": "^7.0.0",
-    "ngx-toastr": "^8.8.0",
-    "node-sass": "^5.0.0",
-    "pug": "^2.0.3",
+    "node-sass": "^7.0.1",
+    "pug": "^3.0.2",
     "pug-loader": "^2.4.0",
-    "rxjs": "^6.2.1",
-    "sanitize-filename": "^1.6.3",
+    "rxjs": "^7.5.5",
     "sass-loader": "^11.0.1",
-    "strip-ansi": "^5.0.0",
     "style-loader": "^2.0.0",
-    "tabby-core": "^1.0.140",
-    "tabby-electron": "^1.0.140",
-    "tabby-settings": "^1.0.140",
-    "tabby-ssh": "^1.0.140",
-    "tabby-terminal": "^1.0.140",
-    "typescript": "^4.2.3",
-    "webpack": "^5.24.4",
+    "tabby-core": "^1.0.148",
+    "tabby-terminal": "^1.0.148",
+    "ts-loader": "^8.0.17",
+    "typescript": "^4.6.3",
+    "webpack": "^5.24.3",
     "webpack-cli": "^4.5.0"
   },
-  "peerDependencies": {
-    "@angular/core": "^4.0.1"
+  "dependencies": {
+    "better-sqlite3": "^7.6.0",
+    "moment": "^2.29.4"
   },
-  "repository": "eugeny/tabby-save-output"
+  "peerDependencies": {
+    "@angular/core": "^13.3.2",
+    "@angular/common": "^13.3.2",
+    "@angular/forms": "^13.3.2",
+    "tabby-core": "*",
+    "tabby-terminal": "*"
+  }
 }
