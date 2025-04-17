@@ -1,33 +1,33 @@
 import { NgModule } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import TabbyCoreModule, { ConfigProvider } from 'tabby-core'
-import { TerminalContextMenuItemProvider, TerminalDecorator } from 'tabby-terminal'
-import { SettingsTabProvider } from 'tabby-settings'
-
-import { SaveOutputContextMenu } from './contextMenu'
-import { SaveOutputConfigProvider } from './config'
-import { SaveOutputSettingsTabProvider } from './settings'
-import { SaveOutputSettingsTabComponent } from './settingsTab.component'
+import { SettingsTabComponent } from './settingsTab.component'
+import { HistoryTabComponent } from './historyTab.component'
 import { SaveOutputDecorator } from './decorator'
+import { DatabaseService } from './database.service'
+import { TerminalDecorator } from 'tabby-terminal'
 
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
-        TabbyCoreModule,
     ],
     providers: [
-        { provide: TerminalContextMenuItemProvider, useClass: SaveOutputContextMenu, multi: true },
-        { provide: ConfigProvider, useClass: SaveOutputConfigProvider, multi: true },
-        { provide: SettingsTabProvider, useClass: SaveOutputSettingsTabProvider, multi: true },
         { provide: TerminalDecorator, useClass: SaveOutputDecorator, multi: true },
-    ],
-    entryComponents: [
-        SaveOutputSettingsTabComponent,
+        DatabaseService,
     ],
     declarations: [
-        SaveOutputSettingsTabComponent,
+        SettingsTabComponent,
+        HistoryTabComponent,
+    ],
+    exports: [
+        SettingsTabComponent,
+        HistoryTabComponent,
     ],
 })
 export default class SaveOutputModule { }
+
+export { SettingsTabComponent }
+export { HistoryTabComponent }
+export { SaveOutputDecorator }
+export { DatabaseService }

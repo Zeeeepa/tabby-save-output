@@ -7,16 +7,19 @@ import { ConfigService } from 'tabby-core'
 import { TerminalDecorator, BaseTerminalTabComponent, BaseSession } from 'tabby-terminal'
 import { SSHTabComponent } from 'tabby-ssh'
 import { cleanupOutput } from './util'
+import { DatabaseService } from './database.service'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
 export class SaveOutputDecorator extends TerminalDecorator {
-    constructor (
+    constructor(
         private config: ConfigService,
+        private dbService: DatabaseService,
     ) {
         super()
     }
 
-    attach (tab: BaseTerminalTabComponent): void {
+    attach(tab: BaseTerminalTabComponent): void {
         if (this.config.store.saveOutput.autoSave === 'off' || this.config.store.saveOutput.autoSave === 'ssh' && !(tab instanceof SSHTabComponent)) {
             return
         }
@@ -33,10 +36,11 @@ export class SaveOutputDecorator extends TerminalDecorator {
         }
     }
 
-    private attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
+    private attachToSession(session: BaseSession, tab: BaseTerminalTabComponent) {
         let outputPath = this.generatePath(tab)
         const stream = fs.createWriteStream(outputPath)
         let dataLength = 0
+        const sessionId = uuidv4()
 
         // wait for the title to settle
         setTimeout(() => {
@@ -48,11 +52,35 @@ export class SaveOutputDecorator extends TerminalDecorator {
             })
         }, 5000)
 
+        // Track terminal output
         session.output$.subscribe(data => {
             data = cleanupOutput(data)
             dataLength += data.length
             stream.write(data, 'utf8')
+
+            // Save to database
+            this.dbService.saveRecord({
+                sessionId,
+                timestamp: new Date().toISOString(),
+                type: 'output',
+                content: data,
+                title: tab.customTitle || tab.title || 'Untitled'
+            })
         })
+
+        // Track user input
+        if (session.input$) {
+            session.input$.subscribe(data => {
+                // Save to database
+                this.dbService.saveRecord({
+                    sessionId,
+                    timestamp: new Date().toISOString(),
+                    type: 'input',
+                    content: data,
+                    title: tab.customTitle || tab.title || 'Untitled'
+                })
+            })
+        }
 
         session.destroyed$.subscribe(() => {
             stream.close()
@@ -62,7 +90,7 @@ export class SaveOutputDecorator extends TerminalDecorator {
         })
     }
 
-    private generatePath (tab: BaseTerminalTabComponent): string {
+    private generatePath(tab: BaseTerminalTabComponent): string {
         let outputPath = this.config.store.saveOutput.autoSaveDirectory || os.homedir()
         let outputName = new Date().toISOString() + ' - ' + (tab.customTitle || tab.title || 'Untitled') + '.txt'
         outputName = sanitizeFilename(outputName)

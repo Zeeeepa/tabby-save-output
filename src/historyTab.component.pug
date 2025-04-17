@@ -1,0 +1,19 @@
+.terminal-history-container
+    .sidebar
+        h3 Recent Sessions
+        .session-list
+            .session-item(*ngFor="let session of recentSessions", [class.active]="selectedSessionId === session.sessionId", (click)="selectSession(session.sessionId)")
+                .title {{session.title}}
+                .timestamp {{getFormattedTime(session.lastTimestamp)}}
+    
+    .main-content
+        .search-bar
+            input(type="text", [(ngModel)]="searchQuery", placeholder="Search terminal history...")
+            button((click)="search()") Search
+        
+        .records-container
+            .record(*ngFor="let record of records")
+                .record-header
+                    .timestamp {{getFormattedTime(record.timestamp)}}
+                    .type [{{record.type}}]
+                pre.content {{record.content}}
