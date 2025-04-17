@@ -1,0 +1,10 @@
+.terminal-history
+    .sessions-list
+        .session(*ngFor="let session of sessions", [class.active]="session === selectedSession", (click)="selectSession(session)")
+            .session-id {{ session }}
+
+    .records-list(*ngIf="selectedSession")
+        .record(*ngFor="let record of records", [class]="getRecordClass(record)")
+            .timestamp {{ record.timestamp | date:'medium' }}
+            .type {{ record.type }}
+            pre.content {{ record.content }}

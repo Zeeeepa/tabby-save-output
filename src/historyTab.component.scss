@@ -1,0 +1,59 @@
+.terminal-history {
+    display: flex;
+    height: 100%;
+
+    .sessions-list {
+        width: 200px;
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+
+        .session {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+            &:hover {
+                background: rgba(0, 0, 0, 0.05);
+            }
+
+            &.active {
+                background: rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+
+    .records-list {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+
+        .record {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+
+            &.error-record {
+                border-color: #ff5555;
+                background: rgba(255, 85, 85, 0.1);
+            }
+
+            .timestamp {
+                color: #666;
+                font-size: 0.9em;
+                margin-bottom: 5px;
+            }
+
+            .type {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            .content {
+                margin: 0;
+                white-space: pre-wrap;
+                font-family: monospace;
+            }
+        }
+    }
+}

@@ -1,71 +1,64 @@
-import * as fs from 'fs'
-import * as os from 'os'
-import * as path from 'path'
-import sanitizeFilename from 'sanitize-filename'
 import { Injectable } from '@angular/core'
-import { ConfigService } from 'tabby-core'
-import { TerminalDecorator, BaseTerminalTabComponent, BaseSession } from 'tabby-terminal'
-import { SSHTabComponent } from 'tabby-ssh'
-import { cleanupOutput } from './util'
+import { TerminalDecorator, BaseTerminalDecorator, Terminal } from 'tabby-terminal'
+import { DatabaseService, TerminalRecord } from './database.service'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
-export class SaveOutputDecorator extends TerminalDecorator {
-    constructor (
-        private config: ConfigService,
+export class SaveOutputDecorator extends BaseTerminalDecorator implements TerminalDecorator {
+    private sessionId: string
+    private buffer: string = ''
+    private lastInput: string = ''
+    private isProcessingCommand: boolean = false
+
+    constructor(
+        private databaseService: DatabaseService,
     ) {
         super()
+        this.sessionId = uuidv4()
     }
 
-    attach (tab: BaseTerminalTabComponent): void {
-        if (this.config.store.saveOutput.autoSave === 'off' || this.config.store.saveOutput.autoSave === 'ssh' && !(tab instanceof SSHTabComponent)) {
-            return
-        }
-
-        if (tab.sessionChanged$) { // v136+
-            tab.sessionChanged$.subscribe(session => {
-                if (session) {
-                    this.attachToSession(session, tab)
+    attach(terminal: Terminal): void {
+        // Handle input (commands)
+        terminal.input$.subscribe(data => {
+            this.lastInput += data
+            if (data.includes('\r') || data.includes('\n')) {
+                const input = this.lastInput.trim()
+                if (input) {
+                    this.databaseService.saveRecord({
+                        timestamp: new Date().toISOString(),
+                        type: 'input',
+                        content: input,
+                        session_id: this.sessionId,
+                        is_error: false
+                    })
                 }
-            })
-        }
-        if (tab.session) {
-            this.attachToSession(tab.session, tab)
-        }
-    }
-
-    private attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
-        let outputPath = this.generatePath(tab)
-        const stream = fs.createWriteStream(outputPath)
-        let dataLength = 0
-
-        // wait for the title to settle
-        setTimeout(() => {
-            let newPath = this.generatePath(tab)
-            fs.rename(outputPath, newPath, err => {
-                if (!err) {
-                    outputPath = newPath
-                }
-            })
-        }, 5000)
-
-        session.output$.subscribe(data => {
-            data = cleanupOutput(data)
-            dataLength += data.length
-            stream.write(data, 'utf8')
-        })
-
-        session.destroyed$.subscribe(() => {
-            stream.close()
-            if (!dataLength) {
-                fs.unlink(outputPath, () => null)
+                this.lastInput = ''
+                this.isProcessingCommand = true
             }
         })
-    }
 
-    private generatePath (tab: BaseTerminalTabComponent): string {
-        let outputPath = this.config.store.saveOutput.autoSaveDirectory || os.homedir()
-        let outputName = new Date().toISOString() + ' - ' + (tab.customTitle || tab.title || 'Untitled') + '.txt'
-        outputName = sanitizeFilename(outputName)
-        return path.join(outputPath, outputName)
+        // Handle output
+        terminal.output$.subscribe(data => {
+            if (this.isProcessingCommand) {
+                this.buffer += data
+
+                // Check if command output is complete (e.g., new prompt)
+                if (data.includes('$') || data.includes('>') || data.includes('#')) {
+                    const output = this.buffer.trim()
+                    if (output) {
+                        const isError = this.databaseService.analyzeResponse(output)
+                        this.databaseService.saveRecord({
+                            timestamp: new Date().toISOString(),
+                            type: 'output',
+                            content: output,
+                            session_id: this.sessionId,
+                            is_error: isError
+                        })
+                    }
+                    this.buffer = ''
+                    this.isProcessingCommand = false
+                }
+            }
+        })
     }
 }
