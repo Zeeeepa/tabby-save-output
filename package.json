@@ -11,7 +11,8 @@
     "build": "webpack --progress --color",
     "watch": "webpack --progress --color --watch",
     "prepublishOnly": "npm run build",
-    "postinstall": "node scripts/postinstall.js"
+    "postinstall": "node scripts/postinstall.js",
+    "fix-deps": "node scripts/fix-dependencies.js"
   },
   "files": [
     "dist"
@@ -68,16 +69,25 @@
     },
     "tabby-core": {
       "@angular/core": "$@angular/core",
-      "@angular/common": "$@angular/common"
+      "@angular/common": "$@angular/common",
+      "rxjs": "$rxjs"
     },
     "tabby-terminal": {
       "@angular/core": "$@angular/core",
-      "@angular/common": "$@angular/common"
+      "@angular/common": "$@angular/common",
+      "rxjs": "$rxjs"
     },
     "tabby-settings": {
       "@angular/core": "$@angular/core",
       "@angular/common": "$@angular/common",
-      "@angular/forms": "$@angular/forms"
+      "@angular/forms": "$@angular/forms",
+      "rxjs": "$rxjs"
+    },
+    "@angular/core": {
+      "rxjs": "$rxjs"
+    },
+    "@angular/common": {
+      "rxjs": "$rxjs"
     }
   }
 }
