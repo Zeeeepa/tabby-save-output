@@ -24,25 +24,43 @@ npm run build
 
 If you encounter dependency conflicts during installation, try one of these approaches:
 
-1. **Use the latest version of this repository** which includes fixes for dependency conflicts:
+1. **Use the automated fix script** (recommended):
+   ```bash
+   # Run the dependency fix script
+   npm run fix-deps
+   
+   # Then build the plugin
+   npm run build
+   ```
+
+2. **Use the latest version of this repository** which includes fixes for dependency conflicts:
    ```bash
    git pull
-   git checkout origin/codegen-bot/fix-dependency-conflicts-v7
+   git checkout origin/codegen-bot/fix-dependency-conflicts-v8
    npm install
    ```
 
-2. **Use the `--legacy-peer-deps` flag** (older approach):
+3. **Use the `--legacy-peer-deps` flag** (older approach):
    ```bash
    npm install --legacy-peer-deps
    ```
 
-3. **Use npm version 7 or higher** which supports automatic dependency resolution:
+4. **Use npm version 7 or higher** which supports automatic dependency resolution:
    ```bash
    npm install -g npm@latest
    npm install
    ```
 
-4. If you're still having issues, check that you have the correct Node.js version installed. This plugin works best with Node.js 14.x or 16.x.
+5. **For RxJS and Angular conflicts specifically**, try:
+   ```bash
+   # Force the specific version of RxJS that works with Angular 9
+   npm install rxjs@6.6.7 --save-exact
+   
+   # Then install with overrides
+   npm install --force
+   ```
+
+6. If you're still having issues, check that you have the correct Node.js version installed. This plugin works best with Node.js 14.x or 16.x.
 
 ### Windows-specific Issues
 
