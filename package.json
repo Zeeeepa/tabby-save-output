@@ -11,7 +11,8 @@
     "build": "webpack --progress --color",
     "watch": "webpack --progress --color --watch",
     "prepublishOnly": "npm run build",
-    "postinstall": "node scripts/postinstall.js"
+    "postinstall": "node scripts/postinstall.js",
+    "cleanup": "node scripts/cleanup.js"
   },
   "files": [
     "dist"
