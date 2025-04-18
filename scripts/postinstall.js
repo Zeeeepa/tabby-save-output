@@ -1,12 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+
 const os = require('os');
 
 /**
  * This script handles post-installation tasks:
  * 1. Creates an empty pagent.exe file in the tabby-ssh/util directory if it doesn't exist
  *    to prevent the postinstall script from failing on Windows
+
  * 2. Handles dependency conflicts by applying npm overrides if needed
  * 3. Ensures proper cleanup of locked resources
  */
@@ -33,11 +35,14 @@ function handleTabbySSHDependency() {
     if (!fs.existsSync(pagentPath)) {
       fs.writeFileSync(pagentPath, '');
       console.log('Created empty pagent.exe file to prevent installation errors');
+    } else {
+      console.log('pagent.exe already exists, skipping creation');
     }
   } catch (error) {
     console.error('Error handling tabby-ssh dependency:', error);
   }
 }
+
 
 function copyPagentFromNodeModules() {
   try {
@@ -101,6 +106,22 @@ function cleanupLockedResources() {
       // List of directories that might be locked
       const potentiallyLockedDirs = [
         path.join(__dirname, '..', 'node_modules', 'electron'),
+        path.join(__dirname, '..', 'node_modules', 'node-sass'),
+        path.join(__dirname, '..', 'node_modules', '@angular')
+      ];
+      
+      // Check if directories exist and log status
+      potentiallyLockedDirs.forEach(dir => {
+        if (fs.existsSync(dir)) {
+          console.log(`Directory exists: ${dir}`);
+        } else {
+          console.log(`Directory does not exist: ${dir}`);
+        }
+      });
+      
+      console.log('Windows file lock check complete');
+    } catch (error) {
+      console.error('Error handling Windows file locks:', error);
         path.join(__dirname, '..', 'node_modules', 'node-sass')
       ];
       
@@ -124,6 +145,10 @@ function cleanupLockedResources() {
 }
 
 // Run the handlers
+console.log('Running postinstall script...');
+handleTabbySSHDependency();
+handleWindowsFileLocks();
+console.log('Postinstall script completed');
 console.log('Starting tabby-save-output postinstall script...');
 cleanupLockedResources();
 copyPagentFromNodeModules();
