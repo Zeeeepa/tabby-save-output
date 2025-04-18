@@ -12,7 +12,6 @@ const { execSync } = require('child_process');
 
 console.log('Starting dependency conflict resolution script...');
 
-// Function to execute npm commands safely
 function runCommand(command) {
   try {
     console.log(`Running: ${command}`);
@@ -25,18 +24,15 @@ function runCommand(command) {
   }
 }
 
-// Function to update package.json with overrides
 function updatePackageJson() {
   try {
     const packageJsonPath = path.join(__dirname, '..', 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     
-    // Ensure overrides section exists
     if (!packageJson.overrides) {
       packageJson.overrides = {};
     }
     
-    // Add or update RxJS-related overrides
     packageJson.overrides = {
       ...packageJson.overrides,
       '@ng-bootstrap/ng-bootstrap': {
@@ -73,7 +69,6 @@ function updatePackageJson() {
       }
     };
     
-    // Write the updated package.json
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     console.log('Updated package.json with dependency overrides');
     return true;
@@ -83,32 +78,65 @@ function updatePackageJson() {
   }
 }
 
-// Main execution flow
+function fixAngularCoreRxJSConflict() {
+  try {
+    console.log('Attempting to directly fix @angular/core RxJS peer dependency conflict...');
+    
+    const angularCorePath = path.join(__dirname, '..', 'node_modules', '@angular', 'core', 'package.json');
+    
+    if (fs.existsSync(angularCorePath)) {
+      const packageJson = JSON.parse(fs.readFileSync(angularCorePath, 'utf8'));
+      
+      if (packageJson.peerDependencies && packageJson.peerDependencies.rxjs) {
+        const originalVersion = packageJson.peerDependencies.rxjs;
+        
+        packageJson.peerDependencies.rxjs = '^6.5.3 || ^6.6.7';
+        
+        fs.writeFileSync(angularCorePath, JSON.stringify(packageJson, null, 2));
+        console.log(`Updated @angular/core RxJS peer dependency from ${originalVersion} to ^6.5.3 || ^6.6.7`);
+      }
+    } else {
+      console.log('@angular/core package.json not found, skipping direct fix');
+    }
+  } catch (error) {
+    console.error('Error fixing @angular/core RxJS dependency:', error.message);
+  }
+}
+
 async function main() {
   try {
-    // Step 1: Clean npm cache
     console.log('Step 1: Cleaning npm cache...');
     runCommand('npm cache clean --force');
     
-    // Step 2: Update package.json with overrides
     console.log('Step 2: Updating package.json with overrides...');
     if (!updatePackageJson()) {
       console.error('Failed to update package.json. Aborting.');
       return;
     }
     
-    // Step 3: Install RxJS with exact version
     console.log('Step 3: Installing RxJS with exact version...');
     runCommand('npm install rxjs@6.6.7 --save-exact');
     
-    // Step 4: Install dependencies with force flag
-    console.log('Step 4: Installing dependencies with force flag...');
+    console.log('Step 4: Directly fixing Angular Core RxJS peer dependency...');
+    fixAngularCoreRxJSConflict();
+    
+    console.log('Step 5: Installing dependencies with force flag...');
     const installResult = runCommand('npm install --force');
     
-    // Step 5: If force install failed, try legacy-peer-deps
     if (!installResult) {
       console.log('Force install failed. Trying with legacy-peer-deps...');
-      runCommand('npm install --legacy-peer-deps');
+      const legacyResult = runCommand('npm install --legacy-peer-deps');
+      
+      if (!legacyResult) {
+        console.log('\n===== MANUAL RESOLUTION REQUIRED =====');
+        console.log('Both --force and --legacy-peer-deps installation methods failed.');
+        console.log('Try the following manual steps:');
+        console.log('1. Delete node_modules directory: rm -rf node_modules');
+        console.log('2. Delete package-lock.json: rm package-lock.json');
+        console.log('3. Install with specific flags: npm install --legacy-peer-deps --no-optional');
+        console.log('4. If that fails, try: npm install --legacy-peer-deps --no-optional --ignore-scripts');
+        console.log('=====================================\n');
+      }
     }
     
     console.log('Dependency conflict resolution completed.');
@@ -118,7 +146,6 @@ async function main() {
   }
 }
 
-// Run the main function
 main().catch(error => {
   console.error('Unhandled error:', error);
   process.exit(1);

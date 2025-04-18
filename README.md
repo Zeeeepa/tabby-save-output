@@ -1,42 +1,38 @@
-# Tabby Save Output Plugin
+## Tabby Save Output Plugin
 
-This plugin lets you save the console output into a file.
+This plugin for [Tabby](https://github.com/Eugeny/tabby) (formerly Terminus) allows you to save terminal output to a file.
 
-## Installation
+### Features
+
+* Save terminal output to a file
+* Append to existing files
+* Stream output in real-time
+* Configurable file paths
+* Supports SQLite storage for large outputs
+
+### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/Zeeeepa/tabby-save-output.git
-
-# Navigate to the directory
 cd tabby-save-output
-
-# Install dependencies
 npm install
-
-# Build the plugin
 npm run build
 ```
 
-## Troubleshooting
-
-### Dependency Conflicts
+### Troubleshooting Dependency Conflicts
 
 If you encounter dependency conflicts during installation, try one of these approaches:
 
 1. **Use the automated fix script** (recommended):
    ```bash
-   # Run the dependency fix script
    npm run fix-deps
-   
-   # Then build the plugin
    npm run build
    ```
 
 2. **Use the latest version of this repository** which includes fixes for dependency conflicts:
    ```bash
    git pull
-   git checkout origin/codegen-bot/fix-dependency-conflicts-v8
+   git checkout origin/codegen-bot/fix-dependency-conflicts-v7
    npm install
    ```
 
@@ -51,12 +47,22 @@ If you encounter dependency conflicts during installation, try one of these appr
    npm install
    ```
 
-5. **For RxJS and Angular conflicts specifically**, try:
-   ```bash
-   # Force the specific version of RxJS that works with Angular 9
-   npm install rxjs@6.6.7 --save-exact
+5. **For RxJS and Angular compatibility issues**:
+   If you're experiencing dependency conflicts like the one below:
+   ```
+   npm error code ERESOLVE
+   npm error ERESOLVE unable to resolve dependency tree
+   npm error Found: rxjs@6.6.7
+   npm error Could not resolve dependency:
+   npm error peer overridden rxjs@"^6.6.7" (was "^6.5.3") from @angular/core@9.1.13
+   ```
    
-   # Then install with overrides
+   Try these specific steps:
+   ```bash
+   rm -rf node_modules
+   rm package-lock.json
+   npm run fix-deps
+   npm install rxjs@6.6.7 --save-exact
    npm install --force
    ```
 
@@ -64,52 +70,27 @@ If you encounter dependency conflicts during installation, try one of these appr
 
 ### Windows-specific Issues
 
-For Windows users:
+If you encounter issues on Windows related to node-gyp, node-sass, or other native modules:
 
-1. If you encounter an error related to `pagent.exe`, the enhanced postinstall script should automatically fix this issue by:
-   - First trying to copy the file from the ssh2 module if available
-   - Searching in multiple possible locations for the file
-   - Creating an empty file at `node_modules/tabby-ssh/util/pagent.exe` if needed
-
-2. If you still encounter the error, you can manually create the file:
-   ```bash
-   mkdir -p node_modules/tabby-ssh/util
-   type nul > node_modules/tabby-ssh/util/pagent.exe
+1. Install the required build tools:
+   ```
+   npm install --global --production windows-build-tools
    ```
 
-3. If you see "File not found - pagent.exe" errors, try running:
-   ```bash
-   npm rebuild
+2. If you get errors about Python, make sure Python 2.7 is installed and in your PATH.
+
+3. For issues with node-sass, try:
+   ```
+   npm rebuild node-sass
    ```
 
-### Resource Busy or Locked Errors
+### Usage
 
-If you see "EBUSY: resource busy or locked" errors:
+1. Open Tabby (Terminus)
+2. Open the plugin settings
+3. Configure the output file path
+4. Use the "Save Output" button in the terminal toolbar or the keyboard shortcut
 
-1. Close any applications that might be using the files (like VS Code, Electron apps, etc.)
-2. Try running the installation with administrator privileges
-3. Restart your computer and try again
-4. If the issue persists, try the following steps:
-   ```bash
-   # Delete the problematic directories if they exist
-   rm -rf node_modules/electron
-   rm -rf node_modules/node-sass
-   
-   # Reinstall with the force flag
-   npm install --force
-   ```
-
-5. On Windows, you can also try:
-   ```bash
-   # Run as administrator
-   npm cache clean --force
-   npm install
-   ```
-
-## Usage
-
-After installation, you'll find a new "Save output" button in the terminal toolbar.
-
-## License
+### License
 
 MIT
