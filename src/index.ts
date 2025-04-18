@@ -10,6 +10,7 @@ import { SaveOutputConfigProvider } from './config'
 import { SaveOutputSettingsTabProvider } from './settings'
 import { SaveOutputSettingsTabComponent } from './settingsTab.component'
 import { SaveOutputDecorator } from './decorator'
+import { DatabaseService } from './database'
 
 @NgModule({
     imports: [
@@ -22,6 +23,7 @@ import { SaveOutputDecorator } from './decorator'
         { provide: ConfigProvider, useClass: SaveOutputConfigProvider, multi: true },
         { provide: SettingsTabProvider, useClass: SaveOutputSettingsTabProvider, multi: true },
         { provide: TerminalDecorator, useClass: SaveOutputDecorator, multi: true },
+        DatabaseService,
     ],
     entryComponents: [
         SaveOutputSettingsTabComponent,

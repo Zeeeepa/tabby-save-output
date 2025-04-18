@@ -7,17 +7,25 @@ import { ConfigService } from 'tabby-core'
 import { TerminalDecorator, BaseTerminalTabComponent, BaseSession } from 'tabby-terminal'
 import { SSHTabComponent } from 'tabby-ssh'
 import { cleanupOutput } from './util'
+import { DatabaseService } from './database'
 
 @Injectable()
 export class SaveOutputDecorator extends TerminalDecorator {
     constructor (
         private config: ConfigService,
+        private databaseService: DatabaseService,
     ) {
         super()
     }
 
     attach (tab: BaseTerminalTabComponent): void {
-        if (this.config.store.saveOutput.autoSave === 'off' || this.config.store.saveOutput.autoSave === 'ssh' && !(tab instanceof SSHTabComponent)) {
+        // Check if we should save output based on settings
+        if (this.config.store.saveOutput.autoSave === 'off') {
+            return
+        }
+        
+        // Check if we should only save SSH output
+        if (this.config.store.saveOutput.sshOnly && !(tab instanceof SSHTabComponent)) {
             return
         }
 
@@ -33,7 +41,17 @@ export class SaveOutputDecorator extends TerminalDecorator {
         }
     }
 
-    private attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
+    private async attachToSession (session: BaseSession, tab: BaseTerminalTabComponent) {
+        const storageType = this.config.store.saveOutput.storageType || 'file'
+        
+        if (storageType === 'file') {
+            this.attachToFileSystem(session, tab)
+        } else if (storageType === 'database') {
+            this.attachToDatabase(session, tab)
+        }
+    }
+
+    private attachToFileSystem(session: BaseSession, tab: BaseTerminalTabComponent) {
         let outputPath = this.generatePath(tab)
         const stream = fs.createWriteStream(outputPath)
         let dataLength = 0
@@ -59,6 +77,37 @@ export class SaveOutputDecorator extends TerminalDecorator {
             if (!dataLength) {
                 fs.unlink(outputPath, () => null)
             }
+        })
+    }
+
+    private async attachToDatabase(session: BaseSession, tab: BaseTerminalTabComponent) {
+        // Initialize database connection
+        const initialized = await this.databaseService.initialize()
+        if (!initialized) {
+            console.error('Failed to initialize database connection')
+            return
+        }
+
+        // Update session title after it settles
+        setTimeout(() => {
+            this.databaseService.updateSessionTitle(tab.customTitle || tab.title || 'Untitled')
+                .catch(err => console.error('Failed to update session title:', err))
+        }, 5000)
+
+        // Subscribe to terminal output
+        const subscription = session.output$.subscribe(data => {
+            data = cleanupOutput(data)
+            if (data.length > 0) {
+                this.databaseService.saveOutput(data)
+                    .catch(err => console.error('Failed to save output to database:', err))
+            }
+        })
+
+        // Clean up on session destroy
+        session.destroyed$.subscribe(() => {
+            subscription.unsubscribe()
+            this.databaseService.close()
+                .catch(err => console.error('Failed to close database connection:', err))
         })
     }
 

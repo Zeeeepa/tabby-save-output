@@ -1,7 +1,7 @@
 {
   "name": "tabby-save-output",
-  "version": "3.1.0",
-  "description": "Lets you stream console output into a file",
+  "version": "3.2.0",
+  "description": "Lets you stream console output into a file or database",
   "keywords": [
     "tabby-plugin"
   ],
@@ -47,6 +47,7 @@
     "tabby-ssh": "^1.0.163",
     "tabby-terminal": "^1.0.163",
     "typescript": "^4.2.3",
+    "uuid": "^9.0.1",
     "webpack": "^5.24.4",
     "webpack-cli": "^4.5.0"
   },
