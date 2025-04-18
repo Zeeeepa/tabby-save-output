@@ -8,6 +8,7 @@ const os = require('os');
  * 1. Creates an empty pagent.exe file in the tabby-ssh/util directory if it doesn't exist
  *    to prevent the postinstall script from failing on Windows
  * 2. Handles dependency conflicts by applying npm overrides if needed
+ * 3. Ensures proper cleanup of locked resources
  */
 
 function handleTabbySSHDependency() {
@@ -45,34 +46,85 @@ function copyPagentFromNodeModules() {
       return;
     }
 
-    const ssh2Path = path.join(__dirname, '..', 'node_modules', 'ssh2');
-    const ssh2UtilPath = path.join(ssh2Path, 'util');
-    const ssh2PagentPath = path.join(ssh2UtilPath, 'pagent.exe');
+    console.log('Running Windows-specific pagent.exe handling...');
+
+    // Try multiple possible locations for pagent.exe
+    const possibleSources = [
+      path.join(__dirname, '..', 'node_modules', 'ssh2', 'util', 'pagent.exe'),
+      path.join(__dirname, '..', '..', 'ssh2', 'util', 'pagent.exe'),
+      path.join(__dirname, '..', '..', '..', 'ssh2', 'util', 'pagent.exe')
+    ];
     
     const tabbySSHPath = path.join(__dirname, '..', 'node_modules', 'tabby-ssh');
     const tabbyUtilPath = path.join(tabbySSHPath, 'util');
     const tabbyPagentPath = path.join(tabbyUtilPath, 'pagent.exe');
 
-    // Check if ssh2 module and pagent.exe exist
-    if (fs.existsSync(ssh2Path) && fs.existsSync(ssh2PagentPath)) {
-      // Create tabby-ssh/util directory if it doesn't exist
-      if (!fs.existsSync(tabbyUtilPath)) {
-        fs.mkdirSync(tabbyUtilPath, { recursive: true });
+    // Create tabby-ssh/util directory if it doesn't exist
+    if (!fs.existsSync(tabbyUtilPath)) {
+      fs.mkdirSync(tabbyUtilPath, { recursive: true });
+      console.log('Created util directory in tabby-ssh');
+    }
+
+    // Try to find and copy pagent.exe from any of the possible sources
+    let copied = false;
+    for (const sourcePath of possibleSources) {
+      if (fs.existsSync(sourcePath)) {
+        try {
+          fs.copyFileSync(sourcePath, tabbyPagentPath);
+          console.log(`Successfully copied pagent.exe from ${sourcePath}`);
+          copied = true;
+          break;
+        } catch (err) {
+          console.log(`Failed to copy from ${sourcePath}: ${err.message}`);
+        }
       }
-      
-      // Copy pagent.exe from ssh2/util to tabby-ssh/util
-      fs.copyFileSync(ssh2PagentPath, tabbyPagentPath);
-      console.log('Successfully copied pagent.exe from ssh2 module');
-    } else {
-      console.log('ssh2 module or pagent.exe not found, using empty file instead');
-      handleTabbySSHDependency();
+    }
+
+    // If we couldn't copy from any source, create an empty file
+    if (!copied) {
+      console.log('Could not find pagent.exe in any location, creating empty file');
+      fs.writeFileSync(tabbyPagentPath, '');
+      console.log('Created empty pagent.exe file to prevent installation errors');
     }
   } catch (error) {
-    console.error('Error copying pagent.exe:', error);
+    console.error('Error handling pagent.exe:', error);
     // Fallback to creating an empty file
     handleTabbySSHDependency();
   }
 }
 
+function cleanupLockedResources() {
+  if (os.platform() === 'win32') {
+    try {
+      console.log('Attempting to clean up potentially locked resources...');
+      
+      // List of directories that might be locked
+      const potentiallyLockedDirs = [
+        path.join(__dirname, '..', 'node_modules', 'electron'),
+        path.join(__dirname, '..', 'node_modules', 'node-sass')
+      ];
+      
+      // Try to release locks by touching a file in each directory
+      potentiallyLockedDirs.forEach(dir => {
+        if (fs.existsSync(dir)) {
+          try {
+            const touchFile = path.join(dir, '.lock-release');
+            fs.writeFileSync(touchFile, Date.now().toString());
+            fs.unlinkSync(touchFile);
+            console.log(`Successfully touched file in ${dir} to help release locks`);
+          } catch (err) {
+            console.log(`Could not write to ${dir}, it may still be locked: ${err.message}`);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error during cleanup of locked resources:', error);
+    }
+  }
+}
+
 // Run the handlers
+console.log('Starting tabby-save-output postinstall script...');
+cleanupLockedResources();
 copyPagentFromNodeModules();
+console.log('Completed tabby-save-output postinstall script');
