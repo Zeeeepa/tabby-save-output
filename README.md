@@ -25,20 +25,18 @@ npm run build
 If you encounter dependency conflicts during installation, try one of these approaches:
 
 1. **Use the `--legacy-peer-deps` flag**:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-1. **Use the latest version of this repository** which includes fixes for dependency conflicts:
+2. **Use the latest version of this repository** which includes fixes for dependency conflicts:
    ```bash
    git pull
    git checkout origin/codegen-bot/fix-dependency-conflicts-v7
    npm install
    ```
 
-2. **Use the `--legacy-peer-deps` flag** (older approach):
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-
-2. **Clean installation using the cleanup script**:
+3. **Clean installation using the cleanup script**:
    ```bash
    # Run the cleanup script to remove node_modules and package-lock.json
    npm run cleanup
@@ -47,7 +45,7 @@ If you encounter dependency conflicts during installation, try one of these appr
    npm install
    ```
 
-3. **Manual cleanup**:
+4. **Manual cleanup**:
    ```bash
    # Remove node_modules and package-lock.json
    rm -rf node_modules package-lock.json
@@ -56,7 +54,13 @@ If you encounter dependency conflicts during installation, try one of these appr
    npm install
    ```
 
-4. **Node.js version**: This plugin works best with Node.js 14.x or 16.x.
+5. **Use npm version 7 or higher** which supports automatic dependency resolution:
+   ```bash
+   npm install -g npm@latest
+   npm install
+   ```
+
+6. **Node.js version**: This plugin works best with Node.js 14.x or 16.x.
 
 ### Windows-Specific Issues
 
@@ -67,33 +71,11 @@ If you're on Windows and encounter errors:
 2. **pagent.exe error**: The postinstall script should automatically fix this issue by creating an empty pagent.exe file. If you still encounter this error, you can manually create an empty file at `node_modules/tabby-ssh/util/pagent.exe`.
 
 3. **Permission issues**: Try running the command prompt or terminal as administrator.
-=======
-3. **Use npm version 7 or higher** which supports automatic dependency resolution:
-   ```bash
-   npm install -g npm@latest
-   npm install
-   ```
 
-4. If you're still having issues, check that you have the correct Node.js version installed. This plugin works best with Node.js 14.x or 16.x.
-
-### Windows-specific Issues
-
-For Windows users:
-
-1. If you encounter an error related to `pagent.exe`, the enhanced postinstall script should automatically fix this issue by:
-   - First trying to copy the file from the ssh2 module if available
-   - Searching in multiple possible locations for the file
-   - Creating an empty file at `node_modules/tabby-ssh/util/pagent.exe` if needed
-
-2. If you still encounter the error, you can manually create the file:
+4. **Manual pagent.exe creation**: If the automatic fix doesn't work, you can manually create the file:
    ```bash
    mkdir -p node_modules/tabby-ssh/util
    type nul > node_modules/tabby-ssh/util/pagent.exe
-   ```
-
-3. If you see "File not found - pagent.exe" errors, try running:
-   ```bash
-   npm rebuild
    ```
 
 ### Resource Busy or Locked Errors
@@ -130,6 +112,7 @@ After installation, you'll find a new "Save output" button in the terminal toolb
 - Configure output file location
 - Strip ANSI color codes (optional)
 - Append to existing files (optional)
+- Automatic file naming based on terminal title or timestamp
 
 ## License
 
