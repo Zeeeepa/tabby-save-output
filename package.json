@@ -54,5 +54,30 @@
     "@angular/common": "^9.0.0",
     "@angular/animations": "^9.0.0"
   },
-  "repository": "eugeny/tabby-save-output"
+  "repository": "eugeny/tabby-save-output",
+  "overrides": {
+    "@ng-bootstrap/ng-bootstrap": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "@angular/forms": "$@angular/forms"
+    },
+    "ngx-toastr": {
+      "@angular/core": "$@angular/core",
+      "@angular/common": "$@angular/common",
+      "@angular/animations": "$@angular/animations"
+    },
+    "tabby-core": {
+      "@angular/core": "$@angular/core",
+      "@angular/common": "$@angular/common"
+    },
+    "tabby-terminal": {
+      "@angular/core": "$@angular/core",
+      "@angular/common": "$@angular/common"
+    },
+    "tabby-settings": {
+      "@angular/core": "$@angular/core",
+      "@angular/common": "$@angular/common",
+      "@angular/forms": "$@angular/forms"
+    }
+  }
 }
